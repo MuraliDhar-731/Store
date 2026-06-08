@@ -1119,9 +1119,31 @@ function sendWhatsApp(fname, lname, phone, fullAddress, notes, paymentMethod) {
     const p = PRODUCTS.find(x => x.id == id);
     return `  • ${p.name} ×${qty} — $${(p.price*qty).toFixed(2)}`;
   }).join('\n');
-  const payIcon = paymentMethod.includes('Cash') ? '💵' : '💳';
 
+  // ── SAVE ORDER TO LOCALSTORAGE ──
+  const order = {
+    id: 'ORD-' + Date.now(),
+    timestamp: new Date().toISOString(),
+    customer: { name: `${fname} ${lname}`, phone },
+    address: fullAddress,
+    items: Object.entries(cart).map(([id,qty]) => {
+      const p = PRODUCTS.find(x => x.id == id);
+      return { name: p.name, emoji: p.emoji, qty, price: p.price };
+    }),
+    subtotal, tax, total,
+    payment: paymentMethod,
+    notes,
+    status: 'pending'  // pending | confirmed | out-for-delivery | delivered | cancelled
+  };
+  try {
+    const existing = JSON.parse(localStorage.getItem('lw_orders') || '[]');
+    existing.unshift(order);
+    localStorage.setItem('lw_orders', JSON.stringify(existing));
+  } catch(e) {}
+
+  const payIcon = paymentMethod.includes('Cash') ? '💵' : '💳';
   const msg = `🥃 *New Order — ${STORE.name}*\n\n` +
+    `*Order ID:* ${order.id}\n` +
     `*Customer:* ${fname} ${lname}\n` +
     `*Phone:* ${phone}\n` +
     `*Deliver to:* ${fullAddress}\n\n` +
