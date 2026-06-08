@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Dashboard — Liquor World Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold:#C9A84C; --gold-light:#F0D080; --bg:#0D0B08; --bg2:#161410;
+    --bg3:#1E1B16; --bg4:#272319; --text:#F0EBE0; --text-muted:#9A9080;
+    --border:rgba(201,168,76,0.18); --border-hover:rgba(201,168,76,0.4);
+    --red:#C0392B; --green:#27AE60; --blue:#2980B9; --orange:#E67E22;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;}
+
+  /* ── LOGIN ── */
+  #login-screen{
+    position:fixed;inset:0;background:var(--bg);z-index:999;
+    display:flex;align-items:center;justify-content:center;padding:1rem;
+  }
+  .login-box{
+    background:var(--bg2);border:1px solid var(--border);
+    width:100%;max-width:360px;padding:2.5rem;text-align:center;
+  }
+  .login-box .icon{font-size:2.5rem;margin-bottom:1rem;}
+  .login-box h2{font-family:'Playfair Display',serif;color:var(--gold);font-size:1.5rem;margin-bottom:.3rem;}
+  .login-box p{color:var(--text-muted);font-size:.82rem;margin-bottom:1.5rem;}
+  .login-box input{
+    width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);
+    padding:.75rem 1rem;font-family:'DM Sans',sans-serif;font-size:.95rem;
+    outline:none;text-align:center;letter-spacing:.2em;margin-bottom:.75rem;transition:border .2s;
+  }
+  .login-box input:focus{border-color:var(--gold);}
+  .login-err{color:var(--red);font-size:.8rem;margin-bottom:.75rem;display:none;}
+  .btn-gold{background:var(--gold);color:#0D0B08;border:none;font-family:'DM Sans',sans-serif;font-weight:500;font-size:.95rem;padding:.75rem 2rem;cursor:pointer;width:100%;transition:background .2s;}
+  .btn-gold:hover{background:var(--gold-light);}
+
+  /* ── LAYOUT ── */
+  #dashboard{display:none;flex-direction:column;min-height:100vh;}
+  .topbar{
+    background:var(--bg2);border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;
+    padding:1rem 1.5rem;gap:1rem;position:sticky;top:0;z-index:10;
+  }
+  .topbar-left{display:flex;align-items:center;gap:1rem;}
+  .topbar h1{font-family:'Playfair Display',serif;color:var(--gold);font-size:1.2rem;}
+  .topbar-sub{font-size:.75rem;color:var(--text-muted);}
+  .back-btn{
+    background:var(--bg3);border:1px solid var(--border);color:var(--text-muted);
+    padding:.4rem .9rem;font-size:.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;
+    text-decoration:none;transition:all .2s;display:flex;align-items:center;gap:.4rem;
+  }
+  .back-btn:hover{border-color:var(--gold);color:var(--gold);}
+  .logout-btn{background:none;border:1px solid var(--border);color:var(--text-muted);padding:.4rem .9rem;font-size:.78rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;}
+  .logout-btn:hover{border-color:var(--red);color:var(--red);}
+
+  /* ── STATS ── */
+  .stats-row{display:flex;gap:1rem;padding:1.25rem 1.5rem;flex-wrap:wrap;}
+  .stat-card{
+    background:var(--bg2);border:1px solid var(--border);
+    padding:.9rem 1.25rem;flex:1;min-width:130px;
+  }
+  .stat-label{font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.3rem;}
+  .stat-val{font-size:1.6rem;font-weight:500;}
+  .stat-sub{font-size:.72rem;color:var(--text-muted);margin-top:.15rem;}
+
+  /* ── TOOLBAR ── */
+  .toolbar{
+    display:flex;align-items:center;gap:.75rem;padding:0 1.5rem 1rem;flex-wrap:wrap;
+  }
+  .search-wrap{position:relative;flex:1;min-width:200px;}
+  .search-wrap input{
+    width:100%;background:var(--bg3);border:1px solid var(--border);color:var(--text);
+    padding:.55rem 1rem .55rem 2.2rem;font-family:'DM Sans',sans-serif;font-size:.85rem;
+    outline:none;transition:border .2s;
+  }
+  .search-wrap input:focus{border-color:var(--gold);}
+  .search-wrap input::placeholder{color:var(--text-muted);}
+  .search-icon{position:absolute;left:.7rem;top:50%;transform:translateY(-50%);font-size:.8rem;color:var(--text-muted);}
+  .filter-btns{display:flex;gap:.4rem;flex-wrap:wrap;}
+  .filter-btn{
+    background:var(--bg3);border:1px solid var(--border);color:var(--text-muted);
+    padding:.38rem .85rem;font-size:.75rem;cursor:pointer;transition:all .2s;
+    font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:.35rem;
+  }
+  .filter-btn:hover{border-color:var(--border-hover);}
+  .filter-btn.active{background:var(--gold);border-color:var(--gold);color:#0D0B08;font-weight:500;}
+  .export-btn{
+    background:var(--bg3);border:1px solid var(--border);color:var(--text-muted);
+    padding:.38rem .85rem;font-size:.75rem;cursor:pointer;font-family:'DM Sans',sans-serif;
+    transition:all .2s;margin-left:auto;
+  }
+  .export-btn:hover{border-color:var(--gold);color:var(--gold);}
+
+  /* ── ORDERS TABLE ── */
+  .table-wrap{flex:1;overflow-x:auto;padding:0 1.5rem 2rem;}
+  table{width:100%;border-collapse:collapse;font-size:.84rem;min-width:750px;}
+  th{
+    text-align:left;padding:.6rem .75rem;font-size:.7rem;color:var(--text-muted);
+    text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border);
+    background:var(--bg2);position:sticky;top:0;font-weight:400;white-space:nowrap;
+  }
+  td{padding:.7rem .75rem;border-bottom:1px solid rgba(201,168,76,0.07);vertical-align:top;}
+  tr:hover td{background:rgba(201,168,76,0.03);}
+  .order-id{color:var(--gold);font-size:.78rem;font-weight:500;font-family:monospace;}
+  .customer-name{font-weight:500;}
+  .customer-phone{font-size:.76rem;color:var(--text-muted);margin-top:2px;}
+  .address-text{font-size:.78rem;color:var(--text-muted);max-width:180px;line-height:1.4;}
+  .items-list{font-size:.78rem;color:var(--text-muted);line-height:1.6;max-width:200px;}
+  .total-val{font-weight:500;color:var(--gold);white-space:nowrap;}
+  .tax-line{font-size:.72rem;color:var(--text-muted);}
+  .pay-badge{
+    font-size:.7rem;padding:2px 7px;border-radius:2px;white-space:nowrap;
+    display:inline-flex;align-items:center;gap:.3rem;
+  }
+  .pay-cod{background:rgba(39,174,96,0.1);color:#5dbd7e;border:1px solid rgba(39,174,96,0.25);}
+  .pay-card{background:rgba(41,128,185,0.1);color:#5dade2;border:1px solid rgba(41,128,185,0.25);}
+  .time-main{font-size:.8rem;white-space:nowrap;}
+  .time-rel{font-size:.72rem;color:var(--text-muted);margin-top:2px;}
+  .empty-state{text-align:center;padding:4rem 1rem;color:var(--text-muted);font-size:.9rem;line-height:2;}
+
+  /* ── STATUS BADGE + DROPDOWN ── */
+  .status-wrap{position:relative;}
+  .status-badge{
+    display:inline-flex;align-items:center;gap:.35rem;
+    font-size:.72rem;padding:3px 9px;cursor:pointer;border:1px solid;
+    white-space:nowrap;transition:opacity .2s;font-family:'DM Sans',sans-serif;
+    background:none;
+  }
+  .status-badge:hover{opacity:.8;}
+  .s-pending   {color:#E67E22;border-color:rgba(230,126,34,0.4);background:rgba(230,126,34,0.08);}
+  .s-confirmed {color:#2980B9;border-color:rgba(41,128,185,0.4);background:rgba(41,128,185,0.08);}
+  .s-out       {color:#8E44AD;border-color:rgba(142,68,173,0.4);background:rgba(142,68,173,0.08);}
+  .s-delivered {color:#27AE60;border-color:rgba(39,174,96,0.4);background:rgba(39,174,96,0.08);}
+  .s-cancelled {color:#7F8C8D;border-color:rgba(127,140,141,0.4);background:rgba(127,140,141,0.08);text-decoration:line-through;}
+  .status-menu{
+    position:absolute;top:calc(100% + 4px);left:0;z-index:50;
+    background:var(--bg3);border:1px solid var(--border);min-width:170px;display:none;
+  }
+  .status-menu.open{display:block;}
+  .status-option{
+    display:flex;align-items:center;gap:.5rem;padding:.5rem .85rem;
+    font-size:.78rem;cursor:pointer;transition:background .15s;
+    font-family:'DM Sans',sans-serif;
+  }
+  .status-option:hover{background:var(--bg4);}
+  .status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+
+  /* ── ORDER DETAIL PANEL ── */
+  #detail-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;
+    display:none;backdrop-filter:blur(4px);
+  }
+  #detail-panel{
+    position:fixed;right:0;top:0;bottom:0;width:min(440px,100vw);
+    background:var(--bg2);border-left:1px solid var(--border);
+    z-index:201;display:flex;flex-direction:column;transform:translateX(100%);
+    transition:transform .3s ease;overflow-y:auto;
+  }
+  #detail-panel.open{transform:translateX(0);}
+  .dp-header{
+    padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:0;background:var(--bg2);z-index:1;
+  }
+  .dp-header h3{font-family:'Playfair Display',serif;font-size:1.1rem;}
+  .dp-close{background:none;border:none;color:var(--text-muted);font-size:1.4rem;cursor:pointer;}
+  .dp-close:hover{color:var(--text);}
+  .dp-body{padding:1.5rem;display:flex;flex-direction:column;gap:1.25rem;}
+  .dp-section h4{font-size:.72rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem;}
+  .dp-row{display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:.35rem;gap:1rem;}
+  .dp-row span:first-child{color:var(--text-muted);}
+  .dp-items{display:flex;flex-direction:column;gap:.4rem;}
+  .dp-item{display:flex;justify-content:space-between;align-items:center;font-size:.85rem;background:var(--bg3);padding:.5rem .75rem;border:1px solid var(--border);}
+  .dp-item-name{display:flex;align-items:center;gap:.5rem;}
+  .dp-totals{background:var(--bg3);border:1px solid var(--border);padding:.9rem 1rem;}
+  .dp-total-row{display:flex;justify-content:space-between;font-size:.83rem;margin-bottom:.3rem;}
+  .dp-total-row.grand{margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border);font-size:.95rem;}
+  .dp-total-row.grand span:last-child{color:var(--gold);font-weight:500;}
+  .dp-notes{background:var(--bg3);border:1px solid var(--border);padding:.75rem 1rem;font-size:.83rem;color:var(--text-muted);line-height:1.6;}
+  .dp-status-changer{display:flex;flex-direction:column;gap:.5rem;}
+  .status-btn-row{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;}
+  .status-change-btn{
+    padding:.5rem;font-size:.78rem;border:1px solid var(--border);background:var(--bg3);
+    color:var(--text-muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;
+    display:flex;align-items:center;justify-content:center;gap:.35rem;
+  }
+  .status-change-btn:hover{border-color:var(--gold);color:var(--gold);}
+  .status-change-btn.active-status{border-color:var(--gold);background:rgba(201,168,76,0.1);color:var(--gold);}
+  .delete-btn{
+    background:rgba(192,57,43,0.08);border:1px solid rgba(192,57,43,0.3);color:var(--red);
+    padding:.6rem;font-size:.8rem;cursor:pointer;font-family:'DM Sans',sans-serif;
+    transition:all .2s;width:100%;margin-top:.25rem;
+  }
+  .delete-btn:hover{background:rgba(192,57,43,0.15);}
+
+  /* ── TOAST ── */
+  .toast{
+    position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(2rem);
+    background:var(--bg3);border:1px solid var(--gold);color:var(--text);
+    padding:.7rem 1.4rem;font-size:.83rem;z-index:500;opacity:0;transition:all .3s;
+    white-space:nowrap;pointer-events:none;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media(max-width:600px){
+    .stats-row{gap:.6rem;}
+    .stat-card{min-width:100px;padding:.75rem;}
+    th:nth-child(4),td:nth-child(4),
+    th:nth-child(5),td:nth-child(5){display:none;}
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="icon">📦</div>
+    <h2>Order Dashboard</h2>
+    <p>Liquor World — Admin Access</p>
+    <input type="password" id="pw-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="login-err" id="login-err">Incorrect password.</div>
+    <button class="btn-gold" onclick="doLogin()">Sign In</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="topbar">
+    <div class="topbar-left">
+      <a class="back-btn" href="index.html">← Store</a>
+      <div>
+        <h1>📦 Order Dashboard</h1>
+        <div class="topbar-sub">Liquor World · New Haven, CT</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:.5rem;align-items:center">
+      <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
+      <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row" id="stats-row"></div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-inp" placeholder="Search by name, phone, order ID…" oninput="render()">
+    </div>
+    <div class="filter-btns">
+      <button class="filter-btn active" data-s="all"      onclick="setFilter(this,'all')">All</button>
+      <button class="filter-btn"        data-s="pending"  onclick="setFilter(this,'pending')">🕐 Pending</button>
+      <button class="filter-btn"        data-s="confirmed" onclick="setFilter(this,'confirmed')">✓ Confirmed</button>
+      <button class="filter-btn"        data-s="out"      onclick="setFilter(this,'out')">🚗 Out for Delivery</button>
+      <button class="filter-btn"        data-s="delivered" onclick="setFilter(this,'delivered')">✅ Delivered</button>
+      <button class="filter-btn"        data-s="cancelled" onclick="setFilter(this,'cancelled')">✗ Cancelled</button>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Order ID / Time</th>
+          <th>Customer</th>
+          <th>Address</th>
+          <th>Items</th>
+          <th>Total</th>
+          <th>Payment</th>
+          <th>Status</th>
+          <th style="width:50px"></th>
+        </tr>
+      </thead>
+      <tbody id="orders-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ORDER DETAIL PANEL -->
+<div id="detail-overlay" onclick="closeDetail()"></div>
+<div id="detail-panel">
+  <div class="dp-header">
+    <h3 id="dp-title">Order Details</h3>
+    <button class="dp-close" onclick="closeDetail()">✕</button>
+  </div>
+  <div class="dp-body" id="dp-body"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+const ADMIN_PASSWORD = 'barrel2024'; // ← same as store admin password
+let activeFilter = 'all';
+let currentDetailId = null;
+
+// ── STATUS CONFIG ──
+const STATUSES = {
+  pending:   { label:'Pending',          icon:'🕐', cls:'s-pending',   dot:'#E67E22' },
+  confirmed: { label:'Confirmed',        icon:'✓',  cls:'s-confirmed', dot:'#2980B9' },
+  out:       { label:'Out for Delivery', icon:'🚗', cls:'s-out',       dot:'#8E44AD' },
+  delivered: { label:'Delivered',        icon:'✅', cls:'s-delivered', dot:'#27AE60' },
+  cancelled: { label:'Cancelled',        icon:'✗',  cls:'s-cancelled', dot:'#7F8C8D' },
+};
+
+// ── AUTH ──
+function doLogin() {
+  const pw = document.getElementById('pw-input').value;
+  if (pw === ADMIN_PASSWORD) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'flex';
+    renderStats();
+    render();
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+    document.getElementById('pw-input').value = '';
+  }
+}
+function doLogout() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('pw-input').value = '';
+  document.getElementById('login-err').style.display = 'none';
+}
+
+// ── DATA ──
+function getOrders() {
+  try { return JSON.parse(localStorage.getItem('lw_orders') || '[]'); } catch { return []; }
+}
+function saveOrders(orders) {
+  localStorage.setItem('lw_orders', JSON.stringify(orders));
+}
+function updateOrderStatus(id, status) {
+  const orders = getOrders();
+  const o = orders.find(x => x.id === id);
+  if (o) { o.status = status; saveOrders(orders); }
+}
+function deleteOrder(id) {
+  const orders = getOrders().filter(x => x.id !== id);
+  saveOrders(orders);
+}
+
+// ── STATS ──
+function renderStats() {
+  const orders = getOrders();
+  const today = new Date().toDateString();
+  const todayOrders = orders.filter(o => new Date(o.timestamp).toDateString() === today);
+  const todayRevenue = todayOrders.filter(o => o.status !== 'cancelled').reduce((s,o) => s + o.total, 0);
+  const totalRevenue = orders.filter(o => o.status !== 'cancelled').reduce((s,o) => s + o.total, 0);
+  const pending = orders.filter(o => o.status === 'pending').length;
+  const outForDelivery = orders.filter(o => o.status === 'out').length;
+
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">Total Orders</div>
+      <div class="stat-val">${orders.length}</div>
+      <div class="stat-sub">${todayOrders.length} today</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Pending</div>
+      <div class="stat-val" style="color:var(--orange)">${pending}</div>
+      <div class="stat-sub">Need attention</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Out for Delivery</div>
+      <div class="stat-val" style="color:#8E44AD">${outForDelivery}</div>
+      <div class="stat-sub">On the way</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Delivered</div>
+      <div class="stat-val" style="color:var(--green)">${orders.filter(o=>o.status==='delivered').length}</div>
+      <div class="stat-sub">Completed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Today's Revenue</div>
+      <div class="stat-val" style="color:var(--gold)">$${todayRevenue.toFixed(2)}</div>
+      <div class="stat-sub">$${totalRevenue.toFixed(2)} all time</div>
+    </div>
+  `;
+}
+
+// ── FILTER ──
+function setFilter(el, status) {
+  activeFilter = status;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+// ── RENDER TABLE ──
+function render() {
+  const q = document.getElementById('search-inp').value.toLowerCase();
+  let orders = getOrders();
+
+  if (activeFilter !== 'all') orders = orders.filter(o => o.status === activeFilter);
+  if (q) orders = orders.filter(o =>
+    o.id.toLowerCase().includes(q) ||
+    o.customer.name.toLowerCase().includes(q) ||
+    o.customer.phone.toLowerCase().includes(q) ||
+    o.address.toLowerCase().includes(q)
+  );
+
+  const tbody = document.getElementById('orders-tbody');
+  if (!orders.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state">📭<br><br>No orders found.<br><span style="font-size:.8rem">Orders placed on the store will appear here automatically.</span></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = orders.map(o => {
+    const s = STATUSES[o.status] || STATUSES.pending;
+    const date = new Date(o.timestamp);
+    const timeStr = date.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    const dateStr = date.toLocaleDateString([], {month:'short',day:'numeric'});
+    const relTime = timeAgo(date);
+    const itemSummary = o.items.map(i => `${i.emoji} ${i.name} ×${i.qty}`).join('<br>');
+    const isCOD = o.payment.includes('Cash');
+    return `
+      <tr>
+        <td>
+          <div class="order-id">${o.id}</div>
+          <div class="time-main">${dateStr} · ${timeStr}</div>
+          <div class="time-rel">${relTime}</div>
+        </td>
+        <td>
+          <div class="customer-name">${o.customer.name}</div>
+          <div class="customer-phone">📞 ${o.customer.phone}</div>
+        </td>
+        <td><div class="address-text">${o.address}</div></td>
+        <td><div class="items-list">${itemSummary}</div></td>
+        <td>
+          <div class="total-val">$${o.total.toFixed(2)}</div>
+          <div class="tax-line">tax $${o.tax.toFixed(2)}</div>
+        </td>
+        <td>
+          <span class="pay-badge ${isCOD?'pay-cod':'pay-card'}">
+            ${isCOD?'💵 Cash':'💳 Card'}
+          </span>
+        </td>
+        <td>
+          <div class="status-wrap">
+            <button class="status-badge ${s.cls}" onclick="toggleStatusMenu(event,'${o.id}')">
+              ${s.icon} ${s.label} ▾
+            </button>
+            <div class="status-menu" id="sm-${o.id}">
+              ${Object.entries(STATUSES).map(([k,v]) => `
+                <div class="status-option" onclick="changeStatus('${o.id}','${k}')">
+                  <span class="status-dot" style="background:${v.dot}"></span>${v.label}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </td>
+        <td>
+          <button onclick="openDetail('${o.id}')" style="background:none;border:1px solid var(--border);color:var(--text-muted);padding:.3rem .55rem;cursor:pointer;font-size:.8rem;transition:all .2s" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">View</button>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+// ── STATUS MENU ──
+function toggleStatusMenu(e, id) {
+  e.stopPropagation();
+  document.querySelectorAll('.status-menu').forEach(m => {
+    if (m.id !== `sm-${id}`) m.classList.remove('open');
+  });
+  document.getElementById(`sm-${id}`).classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  document.querySelectorAll('.status-menu').forEach(m => m.classList.remove('open'));
+});
+function changeStatus(id, status) {
+  updateOrderStatus(id, status);
+  renderStats();
+  render();
+  if (currentDetailId === id) openDetail(id);
+  showToast(`Order ${id} → ${STATUSES[status].label}`);
+}
+
+// ── DETAIL PANEL ──
+function openDetail(id) {
+  const orders = getOrders();
+  const o = orders.find(x => x.id === id);
+  if (!o) return;
+  currentDetailId = id;
+  const s = STATUSES[o.status] || STATUSES.pending;
+  const date = new Date(o.timestamp);
+
+  document.getElementById('dp-title').textContent = o.id;
+  document.getElementById('dp-body').innerHTML = `
+    <div class="dp-section">
+      <h4>Customer</h4>
+      <div class="dp-row"><span>Name</span><span>${o.customer.name}</span></div>
+      <div class="dp-row"><span>Phone</span><span>${o.customer.phone}</span></div>
+      <div class="dp-row"><span>Address</span><span style="text-align:right;max-width:220px">${o.address}</span></div>
+      <div class="dp-row"><span>Ordered</span><span>${date.toLocaleString()}</span></div>
+    </div>
+
+    <div class="dp-section">
+      <h4>Items</h4>
+      <div class="dp-items">
+        ${o.items.map(i => `
+          <div class="dp-item">
+            <div class="dp-item-name"><span>${i.emoji}</span><span>${i.name}</span></div>
+            <span>×${i.qty} · $${(i.price * i.qty).toFixed(2)}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="dp-section">
+      <h4>Order Total</h4>
+      <div class="dp-totals">
+        <div class="dp-total-row"><span>Subtotal</span><span>$${o.subtotal.toFixed(2)}</span></div>
+        <div class="dp-total-row"><span>CT Sales Tax (6.35%)</span><span>$${o.tax.toFixed(2)}</span></div>
+        <div class="dp-total-row grand"><span>Total</span><span>$${o.total.toFixed(2)}</span></div>
+        <div style="margin-top:.5rem;font-size:.75rem;color:var(--text-muted)">Payment: ${o.payment.includes('Cash')?'💵':'💳'} ${o.payment}</div>
+      </div>
+    </div>
+
+    ${o.notes ? `<div class="dp-section"><h4>Notes</h4><div class="dp-notes">${o.notes}</div></div>` : ''}
+
+    <div class="dp-section">
+      <h4>Update Status</h4>
+      <div class="dp-status-changer">
+        <div class="status-btn-row">
+          ${Object.entries(STATUSES).map(([k,v]) => `
+            <button class="status-change-btn ${o.status===k?'active-status':''}" onclick="changeStatus('${o.id}','${k}')">
+              ${v.icon} ${v.label}
+            </button>
+          `).join('')}
+        </div>
+        <button class="delete-btn" onclick="confirmDelete('${o.id}')">🗑 Delete Order</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('detail-overlay').style.display = 'block';
+  document.getElementById('detail-panel').classList.add('open');
+}
+function closeDetail() {
+  currentDetailId = null;
+  document.getElementById('detail-overlay').style.display = 'none';
+  document.getElementById('detail-panel').classList.remove('open');
+}
+function confirmDelete(id) {
+  if (!confirm(`Delete order ${id}? This cannot be undone.`)) return;
+  deleteOrder(id);
+  closeDetail();
+  renderStats();
+  render();
+  showToast(`Order ${id} deleted`);
+}
+
+// ── EXPORT CSV ──
+function exportCSV() {
+  const orders = getOrders();
+  if (!orders.length) { showToast('No orders to export'); return; }
+  const rows = [['Order ID','Date','Customer','Phone','Address','Items','Subtotal','Tax','Total','Payment','Status','Notes']];
+  orders.forEach(o => {
+    rows.push([
+      o.id,
+      new Date(o.timestamp).toLocaleString(),
+      o.customer.name,
+      o.customer.phone,
+      o.address,
+      o.items.map(i => `${i.name} x${i.qty}`).join('; '),
+      o.subtotal.toFixed(2),
+      o.tax.toFixed(2),
+      o.total.toFixed(2),
+      o.payment,
+      STATUSES[o.status]?.label || o.status,
+      o.notes || ''
+    ]);
+  });
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `liquor-world-orders-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showToast('✅ CSV exported!');
+}
+
+// ── HELPERS ──
+function timeAgo(date) {
+  const diff = Date.now() - date.getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'Just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h/24)}d ago`;
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// Auto-refresh stats every 30 seconds
+setInterval(() => {
+  if (document.getElementById('dashboard').style.display !== 'none') {
+    renderStats(); render();
+  }
+}, 30000);
+</script>
+</body>
+</html>
