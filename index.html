@@ -413,7 +413,43 @@
   .btn-save { background:var(--gold); color:#0D0B08; border:none; padding:.7rem 1.75rem; font-family:'DM Sans',sans-serif; font-size:.9rem; font-weight:500; cursor:pointer; transition:background .2s; }
   .btn-save:hover { background:var(--gold-light); }
 
-  /* ─── ADMIN LINK IN FOOTER ─── */
+  /* ─── ORDER CONFIRMATION SCREEN ─── */
+  #confirm-screen {
+    position:fixed; inset:0; background:var(--bg); z-index:400;
+    display:none; align-items:center; justify-content:center;
+    flex-direction:column; padding:2rem; text-align:center;
+  }
+  #confirm-screen.open { display:flex; }
+  .confirm-icon { font-size:4rem; margin-bottom:1.25rem; animation:popIn .4s ease; }
+  @keyframes popIn { 0%{transform:scale(0.5);opacity:0} 80%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
+  .confirm-title { font-family:'Playfair Display',serif; font-size:2rem; color:var(--gold); margin-bottom:.5rem; }
+  .confirm-sub { color:var(--text-muted); font-size:.95rem; max-width:420px; line-height:1.8; margin-bottom:1.5rem; }
+  .confirm-box {
+    background:var(--bg2); border:1px solid var(--border);
+    padding:1.25rem 1.75rem; max-width:420px; width:100%; text-align:left; margin-bottom:1.5rem;
+  }
+  .confirm-box-row { display:flex; justify-content:space-between; font-size:.85rem; margin-bottom:.4rem; }
+  .confirm-box-row span:first-child { color:var(--text-muted); }
+  .confirm-box-divider { height:1px; background:var(--border); margin:.6rem 0; }
+  .confirm-box-total { display:flex; justify-content:space-between; font-size:1rem; }
+  .confirm-box-total span:last-child { color:var(--gold); font-weight:500; }
+  .confirm-note {
+    background:rgba(39,174,96,0.08); border:1px solid rgba(39,174,96,0.25);
+    color:#5dbd7e; font-size:.82rem; padding:.75rem 1.1rem;
+    max-width:420px; width:100%; line-height:1.7; margin-bottom:1.5rem;
+  }
+  .confirm-wa-btn {
+    background:#25D366; color:#fff; border:none; font-family:'DM Sans',sans-serif;
+    font-size:.9rem; font-weight:500; padding:.75rem 1.75rem; cursor:pointer;
+    display:flex; align-items:center; gap:.6rem; transition:background .2s; margin-bottom:.75rem;
+  }
+  .confirm-wa-btn:hover { background:#1da851; }
+  .confirm-back-btn {
+    background:none; border:1px solid var(--border); color:var(--text-muted);
+    font-family:'DM Sans',sans-serif; font-size:.85rem; padding:.65rem 1.5rem;
+    cursor:pointer; transition:all .2s;
+  }
+  .confirm-back-btn:hover { border-color:var(--gold); color:var(--gold); }
   .admin-link { color:var(--border); font-size:.72rem; cursor:pointer; text-decoration:none; transition:color .2s; }
   .admin-link:hover { color:var(--gold); }
 
@@ -516,7 +552,7 @@
 <div id="order-modal">
   <div class="modal-box">
     <h3>Place Your Order</h3>
-    <p class="sub">Fill in your details. We'll confirm via WhatsApp and deliver to your door within 5 miles of New Haven.</p>
+    <p class="sub">Fill in your details and we'll take it from there. We'll contact you to confirm.</p>
 
     <div class="order-summary" id="order-summary"></div>
 
@@ -532,7 +568,7 @@
     </div>
     <div class="form-group">
       <label>Phone Number (WhatsApp)</label>
-      <input type="tel" id="f-phone" placeholder="+1 (203) 668-0771">
+      <input type="tel" id="f-phone" placeholder="+1 (203) 555-0100">
     </div>
     <div class="form-group">
       <label>Street Address *</label>
@@ -559,38 +595,21 @@
       <label>Special Instructions (optional)</label>
       <textarea id="f-notes" placeholder="Leave at door, call on arrival…"></textarea>
     </div>
-    <!-- PAYMENT METHOD SELECTOR -->
-    <div class="payment-section">
-      <label>Payment Method</label>
-      <div class="pay-options">
-        <div class="pay-option selected" id="pay-cod" onclick="selectPayment('cod')">
-          <input type="radio" name="payment" value="cod" checked>
-          <div class="pay-radio-circle"><div class="pay-radio-dot"></div></div>
-          <div class="pay-label-wrap">
-            <div class="pay-label-title">Cash on Delivery</div>
-            <div class="pay-label-sub">Pay when we arrive</div>
-          </div>
-          <span class="pay-icon">💵</span>
+    <!-- CARD PAYMENT — only option -->
+    <div class="form-group" style="margin-bottom:.5rem">
+      <label>Payment</label>
+      <div style="background:var(--bg3);border:1px solid var(--border);padding:.75rem 1rem;display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem">
+        <span style="font-size:1.2rem">💳</span>
+        <div>
+          <div style="font-size:.9rem;font-weight:500">Credit / Debit Card</div>
+          <div style="font-size:.75rem;color:var(--text-muted)">Secured by Stripe · Charged on order confirmation</div>
         </div>
-        <div class="pay-option" id="pay-card" onclick="selectPayment('card')">
-          <input type="radio" name="payment" value="card">
-          <div class="pay-radio-circle"><div class="pay-radio-dot"></div></div>
-          <div class="pay-label-wrap">
-            <div class="pay-label-title">Credit / Debit Card</div>
-            <div class="pay-label-sub">Secure online payment</div>
-          </div>
-          <span class="pay-icon">💳</span>
-        </div>
+        <span style="margin-left:auto;font-size:.7rem;color:var(--gold);border:1px solid var(--border);padding:2px 8px">ONLY OPTION</span>
       </div>
     </div>
 
-    <!-- COD INFO (shown when COD selected) -->
-    <div class="cod-info" id="cod-info">
-      <span>✓</span> Have exact cash or card ready at the door. Our driver carries a mobile card reader too.
-    </div>
-
-    <!-- STRIPE CARD SECTION (shown when card selected) -->
-    <div id="stripe-section">
+    <!-- STRIPE CARD SECTION always visible -->
+    <div id="stripe-section" class="visible" style="display:block">
       <span class="stripe-field-label">Card Details</span>
       <div id="card-element"></div>
       <div id="card-errors"></div>
@@ -598,16 +617,15 @@
         <span>🔒</span> Secured by <span class="stripe-logo">Stripe</span> — your card info never touches our servers.
       </div>
       <div style="font-size:.72rem;color:var(--text-muted);margin-top:.5rem;padding:.5rem;background:rgba(201,168,76,0.05);border:1px solid var(--border)">
-        ⚙️ <strong style="color:var(--gold)">Setup required:</strong> Replace <code style="color:var(--gold)">STRIPE_PUBLISHABLE_KEY</code> in the script with your real Stripe key from <a href="https://dashboard.stripe.com/apikeys" target="_blank" style="color:var(--gold)">dashboard.stripe.com</a>. Card payments need Stripe Payment Intents backend or Stripe Checkout.
+        ⚙️ <strong style="color:var(--gold)">Setup:</strong> Replace <code style="color:var(--gold)">STRIPE_PUBLISHABLE_KEY</code> with your key from <a href="https://dashboard.stripe.com/apikeys" target="_blank" style="color:var(--gold)">dashboard.stripe.com</a>
       </div>
     </div>
 
     <div id="form-err">Please fill in all required fields.</div>
     <div class="modal-actions">
       <button class="btn-outline" onclick="closeOrder()">Cancel</button>
-      <button id="whatsapp-btn" onclick="submitOrder()">
-        <svg class="wa-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-        <span id="submit-btn-label">Place Order via WhatsApp</span>
+      <button id="place-order-btn" onclick="submitOrder()" style="background:var(--gold);color:#0D0B08;border:none;font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:500;padding:.85rem 2rem;cursor:pointer;display:flex;align-items:center;gap:.5rem;transition:background .2s;">
+        <span id="submit-btn-label">Place Order</span>
       </button>
     </div>
   </div>
@@ -732,6 +750,24 @@
   </div>
 </div>
 
+<!-- ORDER CONFIRMATION SCREEN -->
+<div id="confirm-screen">
+  <div class="confirm-icon">🎉</div>
+  <div class="confirm-title">Order Confirmed!</div>
+  <p class="confirm-sub">Your card has been authorized and your order is on its way to our team at <strong style="color:var(--gold)">Liquor World</strong>.</p>
+  <div class="confirm-box" id="confirm-summary"></div>
+  <div style="background:rgba(201,168,76,0.08);border:1px solid var(--border);padding:.85rem 1.1rem;max-width:420px;width:100%;font-size:.88rem;margin-bottom:1rem;text-align:center" id="confirm-eta"></div>
+  <div class="confirm-note">
+    📱 A text message confirmation has been sent to <strong id="confirm-phone"></strong>.<br>
+    We'll contact you directly if there's any stock issue or change.
+  </div>
+  <button class="confirm-wa-btn" id="confirm-wa-btn">
+    <svg style="width:18px;height:18px;flex-shrink:0" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    Have a question? Chat with us
+  </button>
+  <button class="confirm-back-btn" onclick="backToStore()">← Back to Store</button>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -750,11 +786,20 @@
 // ── STORE CONFIG ──
 const STORE = {
   name: "Liquor World",
-  phone: "12033970221",  // ← UPDATE: replace with your WhatsApp-enabled number
+  // ← ADD all 5 WhatsApp numbers here (digits only, with country code)
+  notifyNumbers: [
+    "1206680771",  // Owner
+    "12031111111",  // Manager 1  ← replace
+    "12032222222",  // Manager 2  ← replace
+    "12033333333",  // Driver 1   ← replace
+    "12034444444",  // Driver 2   ← replace
+  ],
+  customerSmsNumber: "12033970221", // number customers can text back for support
   address: "535 Whalley Ave, New Haven, CT 06511",
   lat: 41.3557,
   lng: -72.9541,
-  radiusMiles: 5
+  radiusMiles: 5,
+  etaMinutes: 45, // ← default delivery ETA in minutes (admin can override in orders dashboard)
 };
 
 // ── INVENTORY ──
@@ -823,8 +868,7 @@ function selectPayment(method) {
   document.getElementById('cod-info').style.display = method === 'cod' ? 'flex' : 'none';
   const stripeSection = document.getElementById('stripe-section');
   stripeSection.classList.toggle('visible', method === 'card');
-  document.getElementById('submit-btn-label').textContent =
-    method === 'card' ? 'Pay & Send Order' : 'Place Order via WhatsApp';
+  document.getElementById('submit-btn-label').textContent = 'Place Order';
   if (method === 'card') initStripe();
 }
 
@@ -943,18 +987,13 @@ function openOrder() {
   if (!Object.keys(cart).length) { showToast('Your cart is empty!'); return; }
   closeCart();
   renderOrderSummary();
-  selectedPayment = 'cod';
-  document.getElementById('pay-cod').classList.add('selected');
-  document.getElementById('pay-card').classList.remove('selected');
-  document.getElementById('cod-info').style.display = 'flex';
-  document.getElementById('stripe-section').classList.remove('visible');
-  document.getElementById('submit-btn-label').textContent = 'Place Order via WhatsApp';
+  document.getElementById('submit-btn-label').textContent = '🔒 Pay & Place Order';
   document.getElementById('address-status').style.display = 'none';
-  // Pre-fill city for convenience
   if (!document.getElementById('f-city').value) {
     document.getElementById('f-city').value = 'New Haven';
   }
   document.getElementById('order-modal').classList.add('open');
+  setTimeout(() => initStripe(), 200);
 }
 function closeOrder() {
   document.getElementById('order-modal').classList.remove('open');
@@ -1042,19 +1081,19 @@ function haversine(lat1, lon1, lat2, lon2) {
 
 // ── SUBMIT ORDER ──
 async function submitOrder() {
-  const fname = document.getElementById('f-fname').value.trim();
-  const lname = document.getElementById('f-lname').value.trim();
-  const phone = document.getElementById('f-phone').value.trim();
+  const fname  = document.getElementById('f-fname').value.trim();
+  const lname  = document.getElementById('f-lname').value.trim();
+  const phone  = document.getElementById('f-phone').value.trim();
   const street = document.getElementById('f-address').value.trim();
-  const apt = document.getElementById('f-apt').value.trim();
-  const city = document.getElementById('f-city').value.trim();
-  const zip = document.getElementById('f-zip').value.trim();
-  const notes = document.getElementById('f-notes').value.trim();
-  const errEl = document.getElementById('form-err');
+  const apt    = document.getElementById('f-apt').value.trim();
+  const city   = document.getElementById('f-city').value.trim();
+  const zip    = document.getElementById('f-zip').value.trim();
+  const notes  = document.getElementById('f-notes').value.trim();
+  const errEl  = document.getElementById('form-err');
 
   if (!fname || !lname || !phone || !street || !city || !zip) {
     errEl.style.display = 'block';
-    errEl.textContent = 'Please fill in all required fields including street, city, and ZIP code.';
+    errEl.textContent = 'Please fill in all required fields including street, city, and ZIP.';
     return;
   }
   if (!/^\d{5}$/.test(zip)) {
@@ -1064,68 +1103,47 @@ async function submitOrder() {
   }
   errEl.style.display = 'none';
 
-  // Build full geocodable address string
   const fullAddress = `${street}${apt ? ', ' + apt : ''}, ${city}, CT ${zip}`;
-
-  const btn = document.getElementById('whatsapp-btn');
+  const btn      = document.getElementById('place-order-btn');
   const btnLabel = document.getElementById('submit-btn-label');
+
   btn.disabled = true;
   btnLabel.textContent = 'Checking address…';
-
   const inZone = await checkDeliveryRadius(fullAddress);
-  if (!inZone) {
-    btn.disabled = false;
-    btnLabel.textContent = selectedPayment === 'card' ? 'Pay & Send Order' : 'Place Order via WhatsApp';
-    return;
+  if (!inZone) { btn.disabled = false; btnLabel.textContent = '🔒 Pay & Place Order'; return; }
+
+  btnLabel.textContent = 'Authorizing card…';
+  if (!stripe || !cardElement) {
+    errEl.style.display = 'block';
+    errEl.textContent = 'Payment not ready. Please wait a moment and try again.';
+    btn.disabled = false; btnLabel.textContent = '🔒 Pay & Place Order'; return;
+  }
+  const { error } = await stripe.createPaymentMethod({ type: 'card', card: cardElement });
+  if (error) {
+    document.getElementById('card-errors').textContent = error.message;
+    btn.disabled = false; btnLabel.textContent = '🔒 Pay & Place Order'; return;
   }
 
-  // ── CARD PAYMENT FLOW ──
-  if (selectedPayment === 'card') {
-    btnLabel.textContent = 'Processing payment…';
-    if (!stripe || !cardElement) {
-      errEl.style.display = 'block';
-      errEl.textContent = 'Card payment not available. Please add your Stripe key or choose Cash on Delivery.';
-      btn.disabled = false;
-      btnLabel.textContent = 'Pay & Send Order';
-      return;
-    }
-    const { error, paymentMethod } = await stripe.createPaymentMethod({ type: 'card', card: cardElement });
-    if (error) {
-      document.getElementById('card-errors').textContent = error.message;
-      btn.disabled = false;
-      btnLabel.textContent = 'Pay & Send Order';
-      return;
-    }
-    sendWhatsApp(fname, lname, phone, fullAddress, notes, 'Card (Stripe) — Pre-authorized');
-    showToast('✅ Card authorized! WhatsApp opened to confirm your order.');
-    btn.disabled = false;
-    btnLabel.textContent = 'Pay & Send Order';
-    return;
-  }
-
-  // ── CASH ON DELIVERY FLOW ──
-  sendWhatsApp(fname, lname, phone, fullAddress, notes, 'Cash on Delivery');
-  btn.disabled = false;
-  btnLabel.textContent = 'Place Order via WhatsApp';
-  showToast('✅ WhatsApp opened — send the message to confirm your order!');
+  btnLabel.textContent = 'Placing order…';
+  const order = placeOrder(fname, lname, phone, fullAddress, notes);
+  btn.disabled = false; btnLabel.textContent = '🔒 Pay & Place Order';
+  closeOrder(); cart = {}; updateCartUI();
+  showConfirmScreen(order);
 }
 
-function sendWhatsApp(fname, lname, phone, fullAddress, notes, paymentMethod) {
+// ── PLACE ORDER ──
+function placeOrder(fname, lname, phone, fullAddress, notes) {
   const subtotal = Object.entries(cart).reduce((s,[id,q]) => {
-    const p = PRODUCTS.find(x => x.id == id);
-    return s + (p ? p.price * q : 0);
+    const p = PRODUCTS.find(x => x.id == id); return s + (p ? p.price * q : 0);
   }, 0);
-  const tax = subtotal * CT_TAX_RATE;
+  const tax   = subtotal * CT_TAX_RATE;
   const total = subtotal + tax;
-  const itemLines = Object.entries(cart).map(([id,qty]) => {
-    const p = PRODUCTS.find(x => x.id == id);
-    return `  • ${p.name} ×${qty} — $${(p.price*qty).toFixed(2)}`;
-  }).join('\n');
+  const eta   = new Date(Date.now() + STORE.etaMinutes * 60000);
 
-  // ── SAVE ORDER TO LOCALSTORAGE ──
   const order = {
     id: 'ORD-' + Date.now(),
     timestamp: new Date().toISOString(),
+    eta: eta.toISOString(),
     customer: { name: `${fname} ${lname}`, phone },
     address: fullAddress,
     items: Object.entries(cart).map(([id,qty]) => {
@@ -1133,31 +1151,106 @@ function sendWhatsApp(fname, lname, phone, fullAddress, notes, paymentMethod) {
       return { name: p.name, emoji: p.emoji, qty, price: p.price };
     }),
     subtotal, tax, total,
-    payment: paymentMethod,
+    payment: 'Card',
     notes,
-    status: 'pending'  // pending | confirmed | out-for-delivery | delivered | cancelled
+    status: 'pending',
+    timeline: { pending: new Date().toISOString() }
   };
+
   try {
     const existing = JSON.parse(localStorage.getItem('lw_orders') || '[]');
-    existing.unshift(order);
-    localStorage.setItem('lw_orders', JSON.stringify(existing));
+    existing.unshift(order); localStorage.setItem('lw_orders', JSON.stringify(existing));
   } catch(e) {}
 
-  const payIcon = paymentMethod.includes('Cash') ? '💵' : '💳';
-  const msg = `🥃 *New Order — ${STORE.name}*\n\n` +
-    `*Order ID:* ${order.id}\n` +
-    `*Customer:* ${fname} ${lname}\n` +
-    `*Phone:* ${phone}\n` +
-    `*Deliver to:* ${fullAddress}\n\n` +
-    `*Items:*\n${itemLines}\n\n` +
-    `*Subtotal:* $${subtotal.toFixed(2)}\n` +
-    `*CT Sales Tax (6.35%):* $${tax.toFixed(2)}\n` +
-    `*Order Total:* $${total.toFixed(2)}\n` +
-    `*Payment:* ${payIcon} ${paymentMethod}\n` +
-    (notes ? `*Notes:* ${notes}\n` : '') +
-    `\n_Please confirm availability and ETA._`;
+  notifyAllStaff(order);
+  sendCustomerSMS(order);
+  return order;
+}
 
-  window.open(`https://wa.me/${STORE.phone}?text=${encodeURIComponent(msg)}`, '_blank');
+// ── NOTIFY ALL 5 STAFF WHATSAPP NUMBERS ──
+function notifyAllStaff(order) {
+  const itemLines = order.items.map(i =>
+    `  • ${i.emoji} ${i.name} ×${i.qty} — $${(i.price * i.qty).toFixed(2)}`
+  ).join('\n');
+  const etaStr = new Date(order.eta).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+  const msg =
+    `🔔 *NEW ORDER — ${STORE.name}*\n\n` +
+    `*Order ID:* ${order.id}\n` +
+    `*Customer:* ${order.customer.name}\n` +
+    `*Phone:* ${order.customer.phone}\n` +
+    `*Deliver to:* ${order.address}\n\n` +
+    `*Items:*\n${itemLines}\n\n` +
+    `*Subtotal:* $${order.subtotal.toFixed(2)}\n` +
+    `*CT Tax (6.35%):* $${order.tax.toFixed(2)}\n` +
+    `*TOTAL:* $${order.total.toFixed(2)}\n` +
+    `*Payment:* 💳 Card (authorized)\n` +
+    (order.notes ? `*Notes:* ${order.notes}\n` : '') +
+    `*ETA Quoted to Customer:* ~${STORE.etaMinutes} mins (by ${etaStr})\n\n` +
+    `_Text/call customer if any stock issue: ${order.customer.phone}_`;
+
+  const encoded = encodeURIComponent(msg);
+  STORE.notifyNumbers.forEach((num, i) => {
+    setTimeout(() => {
+      window.open(`https://wa.me/${num}?text=${encoded}`, `_wa${i}`);
+    }, i * 700);
+  });
+}
+
+// ── SMS CONFIRMATION TO CUSTOMER ──
+function sendCustomerSMS(order) {
+  const etaStr = new Date(order.eta).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+  const itemList = order.items.map(i => `${i.name} x${i.qty}`).join(', ');
+  const smsBody =
+    `Hi ${order.customer.name.split(' ')[0]}! ✅ Order confirmed at Liquor World!\n\n` +
+    `Order #: ${order.id}\n` +
+    `Items: ${itemList}\n` +
+    `Total: $${order.total.toFixed(2)} (tax incl.)\n` +
+    `Delivery to: ${order.address}\n` +
+    `ETA: ~${STORE.etaMinutes} mins (by ${etaStr})\n\n` +
+    `Questions? Call/text (203) 397-0221\n` +
+    `— Liquor World, 535 Whalley Ave, New Haven CT`;
+
+  setTimeout(() => {
+    window.open(`sms:${order.customer.phone}?body=${encodeURIComponent(smsBody)}`, '_sms');
+  }, STORE.notifyNumbers.length * 700 + 500);
+}
+
+// ── CONFIRMATION SCREEN ──
+function showConfirmScreen(order) {
+  const etaStr  = new Date(order.eta).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+  const itemRows = order.items.map(i =>
+    `<div class="confirm-box-row">
+      <span>${i.emoji} ${i.name} ×${i.qty}</span>
+      <span>$${(i.price * i.qty).toFixed(2)}</span>
+    </div>`
+  ).join('');
+
+  document.getElementById('confirm-summary').innerHTML = `
+    <div style="font-size:.7rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.75rem">
+      ${order.id} · 💳 Card Authorized
+    </div>
+    ${itemRows}
+    <div class="confirm-box-divider"></div>
+    <div class="confirm-box-row" style="font-size:.82rem;color:var(--text-muted)"><span>Subtotal</span><span>$${order.subtotal.toFixed(2)}</span></div>
+    <div class="confirm-box-row" style="font-size:.82rem;color:var(--text-muted)"><span>CT Sales Tax (6.35%)</span><span>$${order.tax.toFixed(2)}</span></div>
+    <div class="confirm-box-divider"></div>
+    <div class="confirm-box-total"><span>Total Charged</span><span>$${order.total.toFixed(2)}</span></div>
+  `;
+
+  document.getElementById('confirm-eta').innerHTML =
+    `🚗 Estimated delivery by <strong style="color:var(--gold)">${etaStr}</strong> · ~${STORE.etaMinutes} mins`;
+
+  document.getElementById('confirm-phone').textContent = order.customer.phone;
+
+  const waMsg = `Hi, I placed order ${order.id} and have a question.`;
+  document.getElementById('confirm-wa-btn').onclick = () =>
+    window.open(`https://wa.me/${STORE.notifyNumbers[0]}?text=${encodeURIComponent(waMsg)}`, '_blank');
+
+  document.getElementById('confirm-screen').classList.add('open');
+}
+
+function backToStore() {
+  document.getElementById('confirm-screen').classList.remove('open');
 }
 
 // ── TOAST ──
